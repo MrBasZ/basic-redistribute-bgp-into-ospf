@@ -1,0 +1,165 @@
+# R1:
+#### ip int ####
+int loopback 0
+ ip add 1.1.1.1 255.255.255.255
+ no shut
+ex
+!
+int e0/0
+ ip add 192.168.12.1 255.255.255.0
+ no shut
+ex
+!
+int e0/1
+ ip add 192.168.13.1 255.255.255.0
+ no shut
+ex
+!
+
+# R2:
+#### ip int ####
+int loopback 0
+ ip add 2.2.2.2 255.255.255.255
+ no shut
+ex
+!
+int e0/0
+ ip add 192.168.12.2 255.255.255.0
+ no shut
+ex
+!
+int e0/1
+ ip add 192.168.24.2 255.255.255.0
+ no shut
+ex
+!
+int e0/2
+ ip add 192.168.23.2 255.255.255.0
+ no shut
+ex
+!
+
+# R3:
+#### ip int ####
+int loopback 0
+ ip add 3.3.3.3 255.255.255.255
+ no shut
+ex
+!
+int e0/0
+ ip add 192.168.13.3 255.255.255.0
+ no shut
+ex
+!
+int e0/1
+ ip add 192.168.34.3 255.255.255.0
+ no shut
+ex
+!
+int e0/2
+ ip add 192.168.23.3 255.255.255.0
+ no shut
+ex
+!
+
+# R4:
+#### ip int ####
+int loopback 0
+ ip add 4.4.4.4 255.255.255.255
+ no shut
+ex
+!
+int e0/0
+ ip add 192.168.24.4 255.255.255.0
+ no shut
+ex
+!
+int e0/1
+ ip add 192.168.34.4 255.255.255.0
+ no shut
+ex
+!
+
+
+### R1: OSPF ###
+router ospf 100
+ net 1.1.1.1 0.0.0.0 area 0
+ net 192.168.12.0 0.0.0.255 area 0
+ net 192.168.13.0 0.0.0.255 area 0
+ ex
+!
+
+### R2: OSPF ###
+router ospf 100
+ net 2.2.2.2 0.0.0.0 area 0
+ net 192.168.12.0 0.0.0.255 area 0
+ net 192.168.23.0 0.0.0.255 area 0
+ ex
+!
+
+### R3: OSPF ###
+router ospf 100
+ net 3.3.3.3 0.0.0.0 area 0
+ net 192.168.13.0 0.0.0.255 area 0
+ net 192.168.23.0 0.0.0.255 area 0
+ ex
+!
+
+### R2: iBGP with int nei ###
+router bgp 65100
+ net 2.2.2.2 mask 255.255.255.255
+ net 192.168.24.0 mask 255.255.255.0
+ nei 192.168.24.4 remote-as 65100
+ ex
+!
+
+### R3: iBGP with int nei ###
+router bgp 65100
+ net 3.3.3.3 mask 255.255.255.255
+ net 192.168.34.0 mask 255.255.255.0
+ nei 192.168.34.4 remote-as 65100
+ ex
+!
+
+### R4: iBGP with int nei ###
+router bgp 65100
+ net 4.4.4.4 mask 255.255.255.255
+ net 192.168.24.0 mask 255.255.255.0
+ net 192.168.34.0 mask 255.255.255.0
+ nei 192.168.24.2 remote-as 65100
+ nei 192.168.34.3 remote-as 65100
+ ex
+!
+
+### R2: redis iBGP into OSPF ###
+router ospf 100
+ red bgp 65100 sub
+ ex
+!
+router bgp 65100
+ bgp redistribute-internal
+ red ospf 100
+ ex
+!
+
+### R3: redis iBGP into OSPF ###
+router ospf 100
+ red bgp 65100 sub
+ ex
+!
+router bgp 65100
+ bgp redistribute-internal
+ red ospf 100
+ ex
+!
+
+### R4: redis iBGP into OSPF ###
+router ospf 100
+ red bgp 65100 sub
+ ex
+!
+router bgp 65100
+ bgp redistribute-internal
+ red ospf 100
+ ex
+!
