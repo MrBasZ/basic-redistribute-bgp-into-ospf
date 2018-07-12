@@ -1,4 +1,4 @@
-<h1 align="center"> Basic redistribute bgp into ospf </h1>
+<h1 align="center"> Basic redistribute iBGP into OSPF </h1>
 
 ## Topology
 
